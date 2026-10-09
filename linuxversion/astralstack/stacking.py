@@ -156,88 +156,69 @@ def warp(frame: np.ndarray, sx: np.ndarray, sy: np.ndarray, occlusion: np.ndarra
     return out, luma, plain
 
 
-class RobustStacker:
-    """Streaming two-layer stacker for J = M_sky·I_sky + I_ground:
-    * sky layer: frames are inverse-warped and merged with robust weights (weighted Welford mean/variance,
-      O(1) memory in N); the first 3 frames seed the mean by their median;
-    * foreground layer: plain running mean/variance without warping."""
+class RobustLayer:
+    """Weighted Welford mean/variance with robust weights (Wronski et al. 2019); the first 3 frames seed the mean
+    by their median, a pixel whose seed was wrong is reset after `reset_after` consecutive rejections."""
 
     WARMUP_FRAMES = 3
-    # Sky drift (px) up to which frames feed the unweighted mask statistics.
-    PLAIN_WINDOW_PIXELS = 15.0
 
-    def __init__(self, width: int, height: int, weighting: RobustWeighting | None = None):
-        self.width, self.height = width, height
-        self.weighting = weighting or RobustWeighting()
+    def __init__(self, width: int, height: int, weighting: RobustWeighting):
+        self.weighting = weighting
         shape = (height, width)
-        z = lambda: np.zeros(shape, dtype=np.float32)  # noqa: E731
-        self.sky_rgb = np.zeros((3, height, width), dtype=np.float32)
-        self.sky_w, self.sky_mean, self.sky_m2, self.sky_rejections = z(), z(), z(), z()
-        self.fg_rgb = np.zeros((3, height, width), dtype=np.float64)
-        self.fg_mean, self.fg_m2 = z(), z()
-        self.plain_sum = np.zeros(shape, dtype=np.float64)
-        self.plain_sq = np.zeros(shape, dtype=np.float64)
-        self.plain_count = z()
+        self.rgb = np.zeros((3, height, width), dtype=np.float32)
+        self.w = np.zeros(shape, dtype=np.float32)
+        self.mean = np.zeros(shape, dtype=np.float32)
+        self.m2 = np.zeros(shape, dtype=np.float32)
+        self.rejections = np.zeros(shape, dtype=np.float32)
         self.warmup: list = []
-        self.last_noise = NoiseModel(0, 1e-6)
-        self.frame_count = 0
+        self.frames = 0
 
-    def add(self, frame: np.ndarray, sx: np.ndarray, sy: np.ndarray, noise: NoiseModel, frame_weight: float = 1.0,
-            occlusion: np.ndarray | None = None, accumulate_plain: bool = True):
-        self.last_noise = noise
-        self._accumulate_foreground(frame)
-        warped, luma, plain = warp(frame, sx, sy, occlusion)
-        if accumulate_plain:
-            ok = np.isfinite(plain)
-            self.plain_sum[ok] += plain[ok]
-            self.plain_sq[ok] += plain[ok].astype(np.float64) ** 2
-            self.plain_count[ok] += 1
-        self.frame_count += 1
-        if self.frame_count <= self.WARMUP_FRAMES:
-            self.warmup.append((warped, luma, frame_weight))
-            if self.frame_count == self.WARMUP_FRAMES:
-                self._seed_from_warmup(noise)
+    def add(self, rgb: np.ndarray, luma: np.ndarray, frame_weight: float, noise: NoiseModel):
+        """`luma` NaN = no sample (outside the warped frame or occluded)."""
+        self.frames += 1
+        if self.frames <= self.WARMUP_FRAMES:
+            self.warmup.append((rgb, luma, frame_weight))
+            if self.frames == self.WARMUP_FRAMES:
+                self.seed(noise)
             return
-
         valid = np.isfinite(luma)
-        has = self.sky_w > 0
+        has = self.w > 0
         l = np.where(valid, luma, 0)
-        wr = np.where(has, self.weighting.weight(l, self.sky_mean, noise), 1).astype(np.float32)
+        wr = np.where(has, self.weighting.weight(l, self.mean, noise), 1).astype(np.float32)
         rejected = valid & has & (wr < 0.05)
-        self.sky_rejections[rejected] += 1
-        self.sky_rejections[valid & ~rejected] = 0
-        reset = rejected & (self.sky_rejections >= self.weighting.reset_after) \
-            & (self.sky_w < self.weighting.reset_max_weight)
+        self.rejections[rejected] += 1
+        self.rejections[valid & ~rejected] = 0
+        reset = rejected & (self.rejections >= self.weighting.reset_after) & (self.w < self.weighting.reset_max_weight)
         if reset.any():
             for c in range(3):
-                self.sky_rgb[c][reset] = warped[c][reset] * frame_weight
-            self.sky_w[reset] = frame_weight
-            self.sky_mean[reset] = luma[reset]
-            self.sky_m2[reset] = 0
-            self.sky_rejections[reset] = 0
-        accumulate = valid & ~rejected
-        self._accumulate_sky(accumulate, warped, luma, frame_weight * wr)
+                self.rgb[c][reset] = rgb[c][reset] * frame_weight
+            self.w[reset] = frame_weight
+            self.mean[reset] = luma[reset]
+            self.m2[reset] = 0
+            self.rejections[reset] = 0
+        self._accumulate(valid & ~rejected, rgb, luma, frame_weight * wr)
 
-    def _accumulate_sky(self, where: np.ndarray, rgb: np.ndarray, luma: np.ndarray, weight):
+    def _accumulate(self, where: np.ndarray, rgb: np.ndarray, luma: np.ndarray, weight):
         w = np.where(where, weight, 0).astype(np.float32)
-        w_new = self.sky_w + w
+        w_new = self.w + w
         upd = where & (w_new > 0)
         if not upd.any():
             return
         l = luma[upd]
         wn, wu = w_new[upd], w[upd]
-        delta = l - self.sky_mean[upd]
-        mean = self.sky_mean[upd] + (wu / wn) * delta
-        self.sky_m2[upd] += wu * delta * (l - mean)
-        self.sky_mean[upd] = mean
+        delta = l - self.mean[upd]
+        mean = self.mean[upd] + (wu / wn) * delta
+        self.m2[upd] += wu * delta * (l - mean)
+        self.mean[upd] = mean
         for c in range(3):
-            self.sky_rgb[c][upd] += wu * rgb[c][upd]
-        self.sky_w[upd] = wn
+            self.rgb[c][upd] += wu * rgb[c][upd]
+        self.w[upd] = wn
 
-    def _seed_from_warmup(self, noise: NoiseModel):
+    def seed(self, noise: NoiseModel):
+        if not self.warmup:
+            return
         lumas = np.stack([f[1] for f in self.warmup])
-        count = np.isfinite(lumas).sum(axis=0)
-        full = count >= 3
+        full = np.isfinite(lumas).sum(axis=0) >= 3
         med = np.sort(np.where(np.isfinite(lumas), lumas, np.inf), axis=0)[1] if len(self.warmup) >= 3 else None
         for rgb, luma, fw in self.warmup:
             valid = np.isfinite(luma)
@@ -245,30 +226,69 @@ class RobustStacker:
             if med is not None:
                 robust = self.weighting.weight(np.where(full & valid, luma, 0), np.where(full, med, 0), noise)
                 weight = np.where(full, fw * robust, weight).astype(np.float32)
-            self._accumulate_sky(valid, rgb, luma, weight)
+            self._accumulate(valid, rgb, luma, weight)
         self.warmup = []
 
-    def _accumulate_foreground(self, frame: np.ndarray):
+    def result(self, noise: NoiseModel) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """→ (mean RGB, Σ weights, luma variance); uncovered pixels: 0, 0, float max."""
+        self.seed(noise)
+        covered = self.w > 0
+        safe = np.where(covered, self.w, 1)
+        mean = np.where(covered, self.rgb / safe, 0).astype(np.float32)
+        var = np.where(covered, self.m2 / safe, np.finfo(np.float32).max).astype(np.float32)
+        return mean, self.w.copy(), var
+
+
+class RobustStacker:
+    """Streaming two-layer stacker for J = M_sky·I_sky + I_ground:
+    * sky layer: frames are inverse-warped and merged with robust weights (O(1) memory in N);
+    * foreground layer: no warping. Unlike the app's plain running mean, its *mean* is robust too, so a
+      satellite or plane is not kept in the foreground stack, where it read as sharp static scenery (ground)
+      to the sky mask. Its *variance* stays unweighted: it is the temporal evidence for the mask.
+    * unweighted registered luma statistics within the early drift window (mask evidence)."""
+
+    # Sky drift (px) up to which frames feed the unweighted mask statistics.
+    PLAIN_WINDOW_PIXELS = 15.0
+
+    def __init__(self, width: int, height: int, weighting: RobustWeighting | None = None):
+        self.width, self.height = width, height
+        self.weighting = weighting or RobustWeighting()
+        shape = (height, width)
+        self.sky = RobustLayer(width, height, self.weighting)
+        self.ground = RobustLayer(width, height, self.weighting)
+        self.fg_mean = np.zeros(shape, dtype=np.float32)
+        self.fg_m2 = np.zeros(shape, dtype=np.float32)
+        self.plain_sum = np.zeros(shape, dtype=np.float64)
+        self.plain_sq = np.zeros(shape, dtype=np.float64)
+        self.plain_count = np.zeros(shape, dtype=np.float32)
+        self.last_noise = NoiseModel(0, 1e-6)
+        self.frame_count = 0
+
+    def add(self, frame: np.ndarray, sx: np.ndarray, sy: np.ndarray, noise: NoiseModel, frame_weight: float = 1.0,
+            occlusion: np.ndarray | None = None, accumulate_plain: bool = True):
+        self.last_noise = noise
+        luma = luminance(frame)
         n = self.frame_count + 1
-        l = luminance(frame)
-        delta = l - self.fg_mean
+        delta = luma - self.fg_mean
         self.fg_mean += delta / n
-        self.fg_m2 += delta * (l - self.fg_mean)
-        self.fg_rgb += frame
+        self.fg_m2 += delta * (luma - self.fg_mean)
+        self.ground.add(frame, luma, frame_weight, noise)
+        warped, sky_luma, plain = warp(frame, sx, sy, occlusion)
+        if accumulate_plain:
+            ok = np.isfinite(plain)
+            self.plain_sum[ok] += plain[ok]
+            self.plain_sq[ok] += plain[ok].astype(np.float64) ** 2
+            self.plain_count[ok] += 1
+        self.frame_count = n
+        self.sky.add(warped, sky_luma, frame_weight, noise)
 
     def result(self) -> StackResult:
-        if self.warmup:
-            self._seed_from_warmup(self.last_noise)
-        covered = self.sky_w > 0
-        safe_w = np.where(covered, self.sky_w, 1)
-        sky = np.where(covered, self.sky_rgb / safe_w, 0).astype(np.float32)
-        sky_var = np.where(covered, self.sky_m2 / safe_w, np.finfo(np.float32).max).astype(np.float32)
-        n = max(self.frame_count, 1)
-        fg = (self.fg_rgb / n).astype(np.float32)
-        fg_var = (self.fg_m2 / n).astype(np.float32)
+        sky, sky_w, sky_var = self.sky.result(self.last_noise)
+        fg, _, _ = self.ground.result(self.last_noise)
+        fg_var = (self.fg_m2 / max(self.frame_count, 1)).astype(np.float32)
         has_plain = self.plain_count > 0
         cnt = np.where(has_plain, self.plain_count, 1)
         m = self.plain_sum / cnt
         plain_mean = np.where(has_plain, m, np.nan).astype(np.float32)
         plain_var = np.where(has_plain, np.maximum(self.plain_sq / cnt - m * m, 0), np.nan).astype(np.float32)
-        return StackResult(sky, self.sky_w.copy(), sky_var, fg, fg_var, self.frame_count, plain_mean, plain_var)
+        return StackResult(sky, sky_w, sky_var, fg, fg_var, self.frame_count, plain_mean, plain_var)

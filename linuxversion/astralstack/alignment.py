@@ -141,7 +141,9 @@ def robust_rotation(camera: CameraModel, ref_rays: np.ndarray, observed: np.ndar
         threshold = max(min(3 * float(np.nanmedian(residuals)), inlier_radius), 0.5)
         keep = residuals <= threshold
     residuals = np.linalg.norm(camera.project(ref_rays @ rotation.T) - observed, axis=1)
-    inliers = residuals < inlier_radius
+    # Unlike robustRigid (all pairs within the radius), the RMS is taken over the trimmed set: a few static
+    # lights 3 px off would otherwise push a perfect frame over max_rms.
+    inliers = residuals <= max(min(3 * float(np.nanmedian(residuals)), inlier_radius), 1.0)
     rms = float(np.sqrt((residuals[inliers] ** 2).mean())) if inliers.any() else np.inf
     return RotationFit(rotation, rms, inliers)
 

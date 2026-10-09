@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "astralstack"
+version = "0.1.0"
+description = "Linux/offline version of AstralCamera: stacks a folder of short sky exposures with sky-rotation registration and a separate foreground stack"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.22",
+    "scipy>=1.8",
+    "pillow>=9.1",
+    "tifffile>=2022.5.4",
+    "rawpy>=0.18",
+    "exifread>=3.0",
+]
+
+[project.optional-dependencies]
+fits = ["astropy>=5.0"]
+fast = ["opencv-python-headless>=4.6"]
+test = ["pytest>=7"]
+
+[project.scripts]
+astralstack = "astralstack.cli:main"
+
+[tool.setuptools]
+packages = ["astralstack"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
