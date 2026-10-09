@@ -1,0 +1,9 @@
+.build/
+.swiftpm/
+DerivedData/
+tests/
+xcuserdata/
+*.xcuserstate
+website/
+.DS_Store
+Tools/.build/
