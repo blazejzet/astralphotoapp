@@ -1,0 +1,692 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+
+    },
+    "Actual ISO" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ISO faktyczne"
+          }
+        }
+      }
+    },
+    "AstralCamera" : {
+      "shouldTranslate" : false
+    },
+    "Auto" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
+    "Autofocus %lld%% – focus %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-ostrość %lld%% – ostrość %@"
+          }
+        }
+      }
+    },
+    "Autofocus cancelled." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-ostrość przerwana."
+          }
+        }
+      }
+    },
+    "Autofocus found no stars. Check ISO, clouds and that the camera faces the sky." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-ostrość nie znalazła gwiazd. Sprawdź ISO, chmury i czy aparat patrzy w niebo."
+          }
+        }
+      }
+    },
+    "Autofocus: point the camera at the stars and keep the tripod still (about 1.5 min)." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-ostrość: skieruj aparat na gwiazdy i nie ruszaj statywu (ok. 1,5 min)."
+          }
+        }
+      }
+    },
+    "Bayer RAW unavailable – using ProRAW (%@). Frames decode more slowly." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayer RAW niedostępny – używam ProRAW (%@). Klatki dekodują się wolniej."
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przerwij"
+          }
+        }
+      }
+    },
+    "Cannot add the camera input." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można dodać wejścia aparatu."
+          }
+        }
+      }
+    },
+    "Cannot add the photo output." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie można dodać wyjścia zdjęć."
+          }
+        }
+      }
+    },
+    "Capture error: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Błąd zdjęcia: %@"
+          }
+        }
+      }
+    },
+    "Compass ±" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompas ±"
+          }
+        }
+      }
+    },
+    "Compass Δ" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kompas Δ"
+          }
+        }
+      }
+    },
+    "Darks" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darki"
+          }
+        }
+      }
+    },
+    "Darks %lld/%lld – lens covered" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darki %lld/%lld – obiektyw zakryty"
+          }
+        }
+      }
+    },
+    "Darks ✓" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darki ✓"
+          }
+        }
+      }
+    },
+    "Darks: cover the lens at the same ISO and exposure. On a tripod you need no self-timer – you can leave the screen on." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darki: zakryj obiektyw przy tych samych ISO i czasie. Na statywie samowyzwalacz jest zbędny – ekran może zostać włączony."
+          }
+        }
+      }
+    },
+    "Delete master dark" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usuń master dark"
+          }
+        }
+      }
+    },
+    "Exposing (stack)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naświetlanie (stos)"
+          }
+        }
+      }
+    },
+    "Exposure" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekspozycja"
+          }
+        }
+      }
+    },
+    "Files: %@ (JPEG + 32-bit linear TIFF)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pliki: %@ (JPEG + liniowy TIFF 32-bit)"
+          }
+        }
+      }
+    },
+    "Finish and save" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zakończ i zapisz"
+          }
+        }
+      }
+    },
+    "Focus" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostrość"
+          }
+        }
+      }
+    },
+    "Focus (S/N)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostrość (S/N)"
+          }
+        }
+      }
+    },
+    "Focus set on the stars: %@ (saved for this lens)." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostrość ustawiona na gwiazdach: %@ (zapamiętana dla tego obiektywu)."
+          }
+        }
+      }
+    },
+    "Frames" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klatki"
+          }
+        }
+      }
+    },
+    "Framing (single frame)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kadrowanie (pojedyncza klatka)"
+          }
+        }
+      }
+    },
+    "Hot" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gorąco"
+          }
+        }
+      }
+    },
+    "iOS changed the exposure to %@ s – restoring manual settings; these frames are skipped." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS zmienił czas naświetlania na %@ s – przywracam ręczne ustawienia; te klatki są pomijane."
+          }
+        }
+      }
+    },
+    "ISO" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ISO"
+          }
+        }
+      }
+    },
+    "Latitude" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szerokość"
+          }
+        }
+      }
+    },
+    "Lens" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obiektyw"
+          }
+        }
+      }
+    },
+    "Loupe 1:1 – set focus" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lupa 1:1 – ustaw ostrość"
+          }
+        }
+      }
+    },
+    "Master dark ready (%lld frames)." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Master dark gotowy (%lld klatek)."
+          }
+        }
+      }
+    },
+    "Metal is not available on this device." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metal jest niedostępny na tym urządzeniu."
+          }
+        }
+      }
+    },
+    "Moving" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruch"
+          }
+        }
+      }
+    },
+    "New session" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nowa sesja"
+          }
+        }
+      }
+    },
+    "No accepted frames – nothing to save." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak przyjętych klatek – nic do zapisania."
+          }
+        }
+      }
+    },
+    "No black level in the DNG – assuming 0." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak poziomu czerni w DNG – przyjęto 0."
+          }
+        }
+      }
+    },
+    "No camera access. Turn it on in Settings." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dostępu do aparatu. Włącz go w Ustawieniach."
+          }
+        }
+      }
+    },
+    "No compass or location – the sky's rotation axis will be found from the stars alone." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak kompasu lub lokalizacji – oś obrotu nieba zostanie wyznaczona wyłącznie z gwiazd."
+          }
+        }
+      }
+    },
+    "No Photos access – the file is in the Files app." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brak dostępu do Zdjęć – plik jest w aplikacji Pliki."
+          }
+        }
+      }
+    },
+    "No rear camera found (the Simulator has no camera – run on an iPhone)." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono tylnego aparatu (symulator nie ma kamery – uruchom na iPhonie)."
+          }
+        }
+      }
+    },
+    "none" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "brak"
+          }
+        }
+      }
+    },
+    "Note: the camera is using ISO %lld instead of the %lld you set." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uwaga: aparat używa ISO %lld zamiast ustawionego %lld."
+          }
+        }
+      }
+    },
+    "Processing…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przetwarzanie…"
+          }
+        }
+      }
+    },
+    "RAW decoding error: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Błąd dekodowania RAW: %@"
+          }
+        }
+      }
+    },
+    "Residual" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Residuum"
+          }
+        }
+      }
+    },
+    "Save diagnostic data (stacks, ~150 MB)" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisuj dane diagnostyczne (stosy, ~150 MB)"
+          }
+        }
+      }
+    },
+    "Saved to Photos." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisano w Zdjęciach."
+          }
+        }
+      }
+    },
+    "Saving failed: %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapis nie powiódł się: %@"
+          }
+        }
+      }
+    },
+    "searching…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "szukam…"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Udostępnij"
+          }
+        }
+      }
+    },
+    "Sky axis" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oś nieba"
+          }
+        }
+      }
+    },
+    "Sky mask, gradient, deconvolution, colour, saving…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maska nieba, gradient, dekonwolucja, kolor, zapis…"
+          }
+        }
+      }
+    },
+    "Stars" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gwiazdy"
+          }
+        }
+      }
+    },
+    "Start" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "Starting…" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uruchamianie…"
+          }
+        }
+      }
+    },
+    "Sweeping focus and measuring star peak brightness (highest = sharpest). Keep the phone still." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przesuwam ostrość i mierzę jasność szczytową gwiazd (najwyższa = najostrzej). Nie ruszaj telefonu."
+          }
+        }
+      }
+    },
+    "Telephoto" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teleobiektyw"
+          }
+        }
+      }
+    },
+    "The dark frames contain light (level %@). Cover the lens completely and try again." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darki zawierają światło (poziom %@). Zakryj obiektyw całkowicie i spróbuj ponownie."
+          }
+        }
+      }
+    },
+    "The phone is critically hot – finishing and saving the session." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telefon jest krytycznie gorący – kończę i zapisuję sesję."
+          }
+        }
+      }
+    },
+    "This lens does not offer RAW capture. %@" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten obiektyw nie udostępnia zdjęć RAW. %@"
+          }
+        }
+      }
+    },
+    "Time" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Czas"
+          }
+        }
+      }
+    },
+    "Too few stars to match (%lld)." : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Za mało gwiazd do dopasowania (%lld)."
+          }
+        }
+      }
+    },
+    "Tripod" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statyw"
+          }
+        }
+      }
+    },
+    "Ultra Wide" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ultraszeroki"
+          }
+        }
+      }
+    },
+    "Wide" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szeroki"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
