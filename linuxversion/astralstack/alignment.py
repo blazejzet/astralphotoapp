@@ -37,13 +37,14 @@ class CameraModel:
         return float(np.hypot(*self.center))
 
     @staticmethod
-    def from_fov(horizontal_fov_degrees: float, width: int, height: int) -> "CameraModel":
-        """f = (W/2)/tan(HFOV/2)."""
-        return CameraModel(width, height, (width / 2) / np.tan(np.radians(horizontal_fov_degrees) / 2))
+    def from_fov(fov_degrees: float, width: int, height: int) -> "CameraModel":
+        """f = (L/2)/tan(FOV/2), FOV along the longer side L."""
+        return CameraModel(width, height, (max(width, height) / 2) / np.tan(np.radians(fov_degrees) / 2))
 
     @property
-    def horizontal_fov(self) -> float:
-        return float(np.degrees(2 * np.arctan(self.width / 2 / self.focal)))
+    def field_of_view(self) -> float:
+        """Degrees along the longer side."""
+        return float(np.degrees(2 * np.arctan(max(self.width, self.height) / 2 / self.focal)))
 
     def undistort(self, p: np.ndarray) -> np.ndarray:
         if self.k1 == 0:
@@ -328,9 +329,10 @@ def refine_camera(camera: CameraModel, star_positions: list[np.ndarray], referen
         lo, hi = log_f0 - np.log(1.25), log_f0 + np.log(1.25)
         start = log_f0
     else:
-        # Horizontal field of view 5°…140°.
-        lo = np.log(camera.width / 2 / np.tan(np.radians(140) / 2))
-        hi = np.log(camera.width / 2 / np.tan(np.radians(5) / 2))
+        # Field of view 5°…140° along the longer side.
+        side = max(camera.width, camera.height)
+        lo = np.log(side / 2 / np.tan(np.radians(140) / 2))
+        hi = np.log(side / 2 / np.tan(np.radians(5) / 2))
         grid = np.linspace(lo, hi, 48)
         start = grid[int(np.argmin([cost(replace(camera, focal=float(np.exp(g)), k1=0.0)) for g in grid]))]
 
@@ -345,7 +347,7 @@ def refine_camera(camera: CameraModel, star_positions: list[np.ndarray], referen
     if res.fun < 0.95 * base:
         refined = camera_for(res.x)
         note = (f"Lens fitted to the stars: f {camera.focal:.1f} → {refined.focal:.1f} px "
-                f"(HFOV {refined.horizontal_fov:.1f}°), distortion k1 {refined.k1:+.4f}; "
+                f"(FOV {refined.field_of_view:.1f}°), distortion k1 {refined.k1:+.4f}; "
                 f"reprojection {np.sqrt(base):.2f} → {np.sqrt(res.fun):.2f} px")
         return refined, note
     return camera, None

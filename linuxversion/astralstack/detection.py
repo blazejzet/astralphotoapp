@@ -82,13 +82,16 @@ class StarDetector:
     Bertin & Arnouts 1996 (A&AS 117, 393); SEP – Barbary 2016 (JOSS 1(6), 58)."""
 
     def __init__(self, mesh_size=64, threshold_sigma=5.0, max_stars=150, min_pixels_above_threshold=3,
-                 centroid_radius=3, edge_margin=6):
+                 centroid_radius=3, edge_margin=6, max_elongation=None):
         self.mesh_size = mesh_size
         self.threshold_sigma = threshold_sigma
         self.max_stars = max_stars
         self.min_pixels_above_threshold = min_pixels_above_threshold
         self.centroid_radius = centroid_radius
         self.edge_margin = edge_margin
+        # √(λ_max/λ_min) of the second moments above which a detection is dropped (satellite and plane
+        # streaks: ≈ 2.4, stars ≈ 1.1). None = keep everything, as AstralCore's detector.
+        self.max_elongation = max_elongation
 
     def detect(self, image: np.ndarray, mask: np.ndarray | None = None) -> StarDetection:
         image = np.ascontiguousarray(image, dtype=np.float32)
@@ -148,7 +151,16 @@ class StarDetector:
         my = (val * oy).sum(axis=1) / sw
         sr2 = (val * (ox * ox + oy * oy)).sum(axis=1) / sw
         per_axis_variance = np.maximum(sr2 - mx * mx - my * my, 0) / 2
-        order = np.argsort(-sw, kind="stable")[: self.max_stars]
+        order = np.argsort(-sw, kind="stable")
+        if self.max_elongation is not None:
+            cxx = (val * ox * ox).sum(axis=1) / sw - mx * mx
+            cyy = (val * oy * oy).sum(axis=1) / sw - my * my
+            cxy = (val * ox * oy).sum(axis=1) / sw - mx * my
+            half_trace, det = (cxx + cyy) / 2, cxx * cyy - cxy * cxy
+            root = np.sqrt(np.maximum(half_trace ** 2 - det, 0))
+            elongation = np.sqrt((half_trace + root) / np.maximum(half_trace - root, 1e-9))
+            order = order[elongation[order] <= self.max_elongation]
+        order = order[: self.max_stars]
         positions = np.stack([xs + mx, ys + my], axis=1)[order]
         return StarDetection(positions, sw[order], peak[order].astype(np.float64),
                              2.3548 * np.sqrt(per_axis_variance[order]), mesh.global_background, noise)

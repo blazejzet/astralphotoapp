@@ -148,16 +148,19 @@ class LoadedFrame:
     description: str
 
 
-def hot_filtered(m: np.ndarray, ratio: float) -> np.ndarray:
+def hot_filtered(m: np.ndarray, ratio: float, step: int = 2) -> np.ndarray:
     """Single-pixel spikes (hot pixels, cosmic rays): far above all 4 adjacent samples → replaced by the mean
-    of the same-colour neighbours. Stars have a PSF wider than one pixel and survive."""
+    of the same-colour neighbours (`step` 2 on a Bayer mosaic, 1 on an RGB plane). Stars have a PSF wider
+    than one pixel and survive."""
     if ratio <= 0:
         return m
     p = np.pad(m, 2, mode="edge")
     c = p[2:-2, 2:-2]
     n = np.maximum(np.maximum(p[2:-2, 1:-3], p[2:-2, 3:-1]), np.maximum(p[1:-3, 2:-2], p[3:-1, 2:-2]))
     hot = c > ratio * np.maximum(n, 0) + 0.01
-    repl = 0.25 * (p[2:-2, :-4] + p[2:-2, 4:] + p[:-4, 2:-2] + p[4:, 2:-2])
+    lo, hi = 2 - step, -2 - step or None
+    repl = 0.25 * (p[2:-2, lo:hi] + p[2:-2, 2 + step:(-2 + step) or None]
+                   + p[lo:hi, 2:-2] + p[2 + step:(-2 + step) or None, 2:-2])
     return np.where(hot, repl, c)
 
 
@@ -261,6 +264,8 @@ def _normalise(data: np.ndarray, options: LoadOptions, orientation: int, label: 
     gamma = options.gamma if options.gamma != "auto" else ("srgb" if bits <= 8 else "linear")
     if gamma == "srgb":
         v = srgb_to_linear(np.clip(v, 0, 1))
+    if options.hot_ratio > 0:
+        v = np.stack([hot_filtered(c, options.hot_ratio, step=1) for c in v])
     full = (v.shape[2], v.shape[1])
     k = options.bin if options.bin else (2 if full[0] * full[1] > 16_000_000 else 1)
     return bin_rgb(np.ascontiguousarray(v, dtype=np.float32), k), orientation, full, k, f"{label}, {bits}-bit, {gamma}"

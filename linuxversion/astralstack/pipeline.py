@@ -65,6 +65,8 @@ class FrameAnalysis:
 # MARK: - Workers (top level, picklable)
 
 _worker_options: LoadOptions | None = None
+DEEP_DETECTIONS = 500
+ALIGNMENT_STARS = 150
 
 
 def _init_worker(options: LoadOptions):
@@ -74,7 +76,9 @@ def _init_worker(options: LoadOptions):
 
 def _analyse(path: Path, orientation_hint: int) -> FrameAnalysis:
     frame = load_frame(path, _worker_options, orientation_hint)
-    detection = StarDetector().detect(luminance(frame.rgb))
+    # Streaks (satellites, planes) would fill the brightest-N list and push the stars out; static sources are
+    # removed later (`static_detections`), so keep a deep list here.
+    detection = StarDetector(max_elongation=2.0, max_stars=DEEP_DETECTIONS).detect(luminance(frame.rgb))
     bright = detection.fwhm[:30]
     return FrameAnalysis(detection.positions, float(np.median(bright)) if bright.size else float("nan"),
                          detection.background, detection.noise, frame.rgb.shape[1:], frame.orientation,
@@ -129,6 +133,32 @@ def _stats(values, fmt: str) -> str:
     return f"median {fmt % v[len(v) // 2]}, min {fmt % v[0]}, max {fmt % v[-1]}"
 
 
+def static_detections(positions: list[np.ndarray], radius: float = 1.0, fraction: float = 0.5,
+                      min_remaining: int = 12) -> list[np.ndarray]:
+    """Per frame, a mask of detections that sit at the same sensor position in more than `fraction` of the
+    frames: hot pixels, lights on the ground, a lamp in a window. Stars move with the sky, so they only stay
+    put when the whole sequence barely moves – then too little is left and nothing is masked (identity is the
+    right answer anyway).
+    The app cannot do this live; it masks the detector with the provisional ground mask instead."""
+    from scipy.spatial import cKDTree
+
+    n = len(positions)
+    if n < 6:
+        return [np.zeros(len(p), dtype=bool) for p in positions]
+    if not any(len(p) for p in positions):
+        return [np.zeros(0, dtype=bool) for _ in positions]
+    points = np.concatenate([p for p in positions if len(p)])
+    frame_of = np.concatenate([np.full(len(p), k) for k, p in enumerate(positions)])
+    tree = cKDTree(points)
+    masks = []
+    for p in positions:
+        hits = tree.query_ball_point(p, radius) if len(p) else []
+        masks.append(np.array([len(set(frame_of[h])) > fraction * n for h in hits], dtype=bool))
+    if np.median([(~m).sum() for m in masks]) < min_remaining:
+        return [np.zeros(len(p), dtype=bool) for p in positions]
+    return masks
+
+
 def _camera(settings: Settings, info: FrameInfo, analysis: FrameAnalysis) -> tuple[CameraModel, bool, str]:
     h, w = analysis.shape
     k = analysis.binning
@@ -136,8 +166,7 @@ def _camera(settings: Settings, info: FrameInfo, analysis: FrameAnalysis) -> tup
     if settings.focal_px:
         return CameraModel(w, h, settings.focal_px / k), True, f"--focal-px {settings.focal_px:g}"
     if settings.fov:
-        f = (max(w, h) / 2) / np.tan(np.radians(settings.fov) / 2)
-        return CameraModel(w, h, f), True, f"--fov {settings.fov:g}°"
+        return CameraModel.from_fov(settings.fov, w, h), True, f"--fov {settings.fov:g}°"
     f35 = None
     source = ""
     if settings.focal_mm and settings.crop_factor:
@@ -239,7 +268,13 @@ def run(settings: Settings, log: Log | None = None) -> Path:
         wrong_exposure = [bool(typical_exposure and i.exposure and abs(i.exposure - typical_exposure) > 0.25 * typical_exposure)
                           for i in infos]
 
-        counts = np.array([len(a.positions) for a in analyses])
+        static = static_detections([a.positions for a in analyses])
+        n_static = int(np.median([m.sum() for m in static]))
+        if n_static:
+            log(f"Ignoring {n_static} static detections per frame (hot pixels, lights on the ground)")
+        positions = [a.positions[~m][:ALIGNMENT_STARS] for a, m in zip(analyses, static)]
+
+        counts = np.array([len(p) for p in positions])
         need = max(settings.min_reference_stars, int(0.5 * np.median(counts)))
         candidates = [k for k in range(len(files)) if counts[k] >= need and not wrong_exposure[k]]
         if not candidates:
@@ -250,10 +285,9 @@ def run(settings: Settings, log: Log | None = None) -> Path:
         log(f"Reference frame: {files[reference].name} ({counts[reference]} stars)")
 
         camera, focal_known, focal_source = _camera(settings, infos[reference], analyses[reference])
-        log(f"Camera: f {camera.focal:.1f} px (HFOV {camera.horizontal_fov:.1f}°) from {focal_source}")
+        log(f"Camera: f {camera.focal:.1f} px (FOV {camera.field_of_view:.1f}°) from {focal_source}")
 
         # Registration on the star lists.
-        positions = [a.positions for a in analyses]
         usable = [not x for x in wrong_exposure]
         alignments, aligner = align_sequence(camera, positions, reference, usable)
         lens_note = None
@@ -333,13 +367,14 @@ def run(settings: Settings, log: Log | None = None) -> Path:
         f"Master dark: {dark_note}",
         f"Reference frame: {files[reference].name}",
         f"Frames: {a_ref.description}, binning {a_ref.binning}×, working grid {w}×{h}",
-        f"Intrinsics: from {focal_source}, f {camera.focal:.1f} px (HFOV {camera.horizontal_fov:.1f}°), "
+        f"Intrinsics: from {focal_source}, f {camera.focal:.1f} px (FOV {camera.field_of_view:.1f}°), "
         f"cx {camera.center[0]:.1f}, cy {camera.center[1]:.1f}, distortion k1 {camera.k1:+.4f}",
         f"Actual ISO (EXIF): {_stats([i.iso for i in infos], '%.0f')}",
         f"Actual exposure (EXIF): {_stats([i.exposure for i in infos], '%.3f s')}",
         f"Raw background (0–1 of full scale): {_stats([a.background for a in analyses], '%.4f')}; "
         f"frame noise: {_stats([a.noise for a in analyses], '%.5f')}",
         f"Noise model: lambdaS {noise.lambda_s:.3e}, lambdaR {noise.lambda_r:.3e}",
+        f"Static detections ignored: {n_static} per frame",
         f"Registration: median RMS {np.median(rms) if rms else 0:.2f} px, catalogue {len(aligner.catalog)} stars",
         f"Sky drift: max {max_drift:.1f} px",
         f"EXIF orientation {orientation}, ground direction {ground or 'none'}",
