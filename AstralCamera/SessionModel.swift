@@ -89,13 +89,6 @@ final class SessionModel: ObservableObject {
     /// Gravity direction in the sensor buffer for the sky mask (from the locked EXIF orientation).
     private var groundDirection: ImageDirection? { ImageDirection(exifOrientation: orientation) }
 
-    /// Locked while stacking (the sensor grid is what gets saved); live while framing.
-    var displayOrientation: Image.Orientation {
-        if phase == .framing || phase == .darks || phase == .focusing, let g = motion.gravity {
-            return Self.imageOrientation(DeviceAxes.exifOrientation(gravityInDevice: g))
-        }
-        return Self.imageOrientation(orientation)
-    }
 
     func start() async {
         guard phase == .starting else { return }
@@ -162,6 +155,15 @@ final class SessionModel: ObservableObject {
 
     func applyExposureSettings() {
         camera.apply(iso: iso, focus: focus)
+    }
+
+    /// On-screen shutter, volume buttons and Camera Control: start the stack, or finish it (like video).
+    func shutter() {
+        switch phase {
+        case .framing: startStacking()
+        case .stacking: finish()
+        default: break
+        }
     }
 
     func startDarks() {

@@ -17,12 +17,12 @@
     "AstralCamera" : {
       "shouldTranslate" : false
     },
-    "Auto" : {
+    "Autofocus" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auto"
+            "value" : "Auto-ostrość"
           }
         }
       }
@@ -177,12 +177,42 @@
         }
       }
     },
+    "Decrease" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zmniejsz"
+          }
+        }
+      }
+    },
     "Delete master dark" : {
       "localizations" : {
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Usuń master dark"
+          }
+        }
+      }
+    },
+    "Details" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Szczegóły"
+          }
+        }
+      }
+    },
+    "Dismiss" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij"
           }
         }
       }
@@ -287,6 +317,16 @@
         }
       }
     },
+    "Increase" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwiększ"
+          }
+        }
+      }
+    },
     "iOS changed the exposure to %@ s – restoring manual settings; these frames are skipped." : {
       "localizations" : {
         "pl" : {
@@ -327,6 +367,16 @@
         }
       }
     },
+    "Loupe 1:1" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lupa 1:1"
+          }
+        }
+      }
+    },
     "Loupe 1:1 – set focus" : {
       "localizations" : {
         "pl" : {
@@ -353,6 +403,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Metal jest niedostępny na tym urządzeniu."
+          }
+        }
+      }
+    },
+    "More" : {
+      "localizations" : {
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Więcej"
           }
         }
       }

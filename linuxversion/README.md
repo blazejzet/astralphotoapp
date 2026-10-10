@@ -109,6 +109,51 @@ o 0,01–0,02 poziomu 8‑bit (splot przez FFT zamiast vImage).
 - Brak flatów: spadek jasności na brzegach koryguje model winiety dopasowany do tła nieba.
 - Kolor to surowe RGB kamery z balansem bieli z gwiazd (jak w aplikacji), bez macierzy kolorów aparatu.
 
+## Cofanie smug gwiazd (`astralstack-untrail`)
+
+Osobne narzędzie do gotowego zdjęcia ze smugami gwiazd (jedno długie naświetlanie albo stos z „lighten”),
+gdy pojedynczych klatek już nie ma. Usuwa smugi i stawia każdą gwiazdę z powrotem w jednym punkcie jej łuku.
+
+```sh
+astralstack-untrail smugi.jpg                         # wynik: smugi_untrailed.jpg
+astralstack-untrail smugi.jpg --at start --diag diag/ # gwiazdy z początku naświetlania + diagnostyka
+astralstack-untrail smugi.tif --pole 2186 981 --fov 75 -o wynik.tif
+```
+
+Jak to działa:
+
+1. **Geometria.** Wszystkie smugi to łuki wokół bieguna niebieskiego. Biegun, ogniskowa i punkt główny
+   (zdjęcia bywają przycięte) są dopasowywane tak, by smugi leżały na liniach stałej odległości od bieguna ρ.
+   Przy obiektywie prostoliniowym to stożkowe, a nie okręgi: na zdjęciu testowym (FOV ≈ 79°) model
+   okręgów wyjaśniał trzy razy mniej. Ocena idzie po sektorach φ, żeby niezwiązane smugi o tym samym ρ
+   nie zlewały się w jeden pierścień.
+2. **Współrzędne bieguna.** Obraz jest przepróbkowany na siatkę (ρ, φ): każda smuga to poziomy odcinek,
+   wszystkie tej samej długości kątowej (15°/h).
+3. **Jądro.** Profil jasności wzdłuż φ jest wspólny dla wszystkich gwiazd (to oś czasu naświetlania,
+   z przerwami między klatkami). Wyznacza się go z mediany wyrównanych, odosobnionych smug; długość
+   wychodzi przy okazji (na zdjęciu z Wikipedii 15,06° = 1,00 h).
+4. **Detekcja.** Filtr dopasowany z tym jądrem wzdłuż φ, a położenie doprecyzowane na pochodnej (końce
+   smugi). Dwie smugi nakładające się przy prawie tym samym ρ dają jedną: słabsza gwiazda przepada,
+   choć jej smuga i tak jest usuwana.
+5. **Krajobraz.** Ciemna sylwetka połączona z ziemią (kierunek grawitacji z EXIF, jak w `astralstack`,
+   albo `--ground`) nie jest przemalowywana, a smuga znikająca za drzewem nie „kończy się” na nim.
+6. **Niebo pod smugami.** Tło z niskiego percentyla poprawione gładkim przesunięciem mierzonym na
+   pikselach, które zostają, plus szum o tej samej sigmie. Wąskie pasy między gęstymi smugami są
+   przemalowywane razem z nimi, bo zostają w nich tylko frędzle.
+7. **Gwiazdy.** Gaussian o szerokości smugi (albo `--star-fwhm`), z jasnością szczytową i średnim kolorem
+   smugi, w środku (`--at middle`, domyślnie), na początku albo na końcu naświetlania; przy dwóch ostatnich
+   kierunek obrotu wynika z `--hemisphere`.
+
+Dekonwolucja wzdłuż φ celowo nie jest używana. Jądro to kilkanaście stopni prawie prostokąta z zerami
+w widmie, a smugi są przepalone i po JPEG-u, więc odwrotny filtr daje głównie dzwonienie.
+
+`--diag` zapisuje `polar.png` (obraz w (ρ, φ)), `trail_mask.png`, `sky_mask.png`, `kernel.csv`,
+`stars.csv` (x, y, RGB) i `geometry.txt`. Zdjęcie 3543×2361 liczy się ok. 1,5 min.
+
+Ograniczenia: gwiazdy blisko bieguna (smuga krótsza niż kilka pikseli) zostają jak były; przy pełnych
+okręgach (smugi ≥ 360°) nie ma końców, więc położenia nie da się odtworzyć; jasność przepalonych smug
+jest nieznana, więc takie gwiazdy wychodzą podobnie jasne.
+
 ## Testy
 
 ```sh
@@ -120,3 +165,7 @@ python -m pytest
 krajobraz z linią drzew i masztem, dystorsję beczkową, winietę, gorące piksele i satelitę w jednej
 klatce. Sprawdza rejestrację, maskę względem prawdziwego horyzontu, ostrość gwiazd w stosie
 i odrzucenie satelity.
+
+`tests/test_untrail.py` renderuje zdjęcie ze smugami o znanej geometrii (obiektyw prostoliniowy, biegun
+w kadrze, przerywany koniec smug, linia drzew) i sprawdza, że dopasowana geometria prostuje łuki, długość
+jądra, powrót gwiazd na środek naświetlania i to, że po smugach nic nie zostaje.

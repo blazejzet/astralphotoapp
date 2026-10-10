@@ -24,6 +24,7 @@ test = ["pytest>=7"]
 
 [project.scripts]
 astralstack = "astralstack.cli:main"
+astralstack-untrail = "astralstack.untrail:main"
 
 [tool.setuptools]
 packages = ["astralstack"]
